@@ -3,16 +3,48 @@ import ContentMedium from "./enums/ContentMedium"
 
 export default class TopTenElement {
 
-    private _id: number
-    private _name: string
-    private _category: ContentCategory
-    private _medium: ContentMedium
+    private _data: {
+        id: number,
+        name: string,
+        category: ContentCategory,
+        medium: ContentMedium
+    }
 
     constructor(data: { [key: string]: any }) {
-        this._id = data.eid
-        this._name = data.name
-        this._category = data.kat
-        this._medium = data.medium
+        this._data = {
+            id: data.eid,
+            name: data.name,
+            category: data.kat,
+            medium: data.medium
+        }
+    }
+
+    /**
+     * The unique ID of this content element.
+     */
+    get id(): number {
+        return this._data.id
+    }
+
+    /**
+     * The name of this elements content.
+     */
+    get name(): string {
+        return this._data.name
+    }
+
+    /**
+     * The category of this top ten element.
+     */
+    get category(): ContentCategory {
+        return this._data.category
+    }
+
+    /**
+     * The medium of this top ten element.
+     */
+    get medium(): ContentMedium {
+        return this._data.medium
     }
 
 }

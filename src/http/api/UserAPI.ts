@@ -6,6 +6,7 @@ import LoggedInUser from "../../models/LoggedInUser";
 import { Payload } from "./definitions/Payload";
 import User from "../../models/User";
 import ContentCategory from "../../models/enums/ContentCategory";
+import TopTenElement from "../../models/TopTenElement";
 
 export default class UserAPI extends BaseAPI {
 
@@ -93,6 +94,21 @@ export default class UserAPI extends BaseAPI {
         return new User(data)
     }
 
+    /**
+     * Get the top ten list of the specified user.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Getting list via id
+     * const topTenList = await proxerAPI.user.topTen({
+     *     userId: 815930
+     * })
+     * // Apply filters
+     * const topTenList = await proxerAPI.user.topTen({
+     *     userId: 815930,
+     *     category: ContentCategory.Anime,
+     *     includeHentai: true // ( ͡° ͜ʖ ͡°)
+     * })
+     */
     async topTen(optionalParams: { userId?: number, username?: string, category?: ContentCategory, includeHentai?: boolean } = {}) {
         const payload: Payload = {}
         if (optionalParams.userId)
@@ -104,7 +120,7 @@ export default class UserAPI extends BaseAPI {
         if (optionalParams.includeHentai)
             payload.isH = optionalParams.includeHentai
 
-        const data = await this._data.httpClient.get([this._data.apiClass, UserApiFunction.TopTen], payload)
-
+        const data: any[] = await this._data.httpClient.get([this._data.apiClass, UserApiFunction.TopTen], payload)
+        return data.map((element: any) => new TopTenElement(element))
     }
 }
