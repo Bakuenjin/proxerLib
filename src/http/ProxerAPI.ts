@@ -42,6 +42,10 @@ export default class ProxerAPI {
         return this._data.httpClient
     }
 
+    get user(): UserAPI {
+        return this._data.user
+    }
+
     /**
      * Sets the user token to the specified token.
      */
