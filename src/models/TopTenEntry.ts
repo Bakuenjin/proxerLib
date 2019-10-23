@@ -1,7 +1,7 @@
 import ContentCategory from "./enums/ContentCategory"
 import ContentMedium from "./enums/ContentMedium"
 
-export default class TopTenElement {
+export default class TopTenEntry {
 
     private _data: {
         id: number,
