@@ -8,10 +8,18 @@ import TopTenEntry from "../../models/TopTenEntry";
 import UserListEntry from "../../models/UserListEntry";
 import Comment from "../../models/Comment";
 import HistoryEntry from "../../models/HistoryEntry";
-import { Payload } from "./definitions/Payload";
 import ContentCategory from "../../models/enums/ContentCategory";
 import UserContentListSort from "../../models/enums/UserContentListSort";
 import ContentStateFilter from "../../models/enums/ContentStateFilter";
+import UserAbout from "../../models/UserAbout";
+import Friend from "../../models/Friend";
+import resolveUser from "../utils/resolve-user";
+import { Payload } from "./definitions/Payload";
+
+/**
+ * The ID, username or class instance of any type of user.
+ */
+type UserResolvable = number | string | Friend | LoggedInUser | User
 
 type OptionalUserLoginParams = {
     /**
@@ -20,26 +28,7 @@ type OptionalUserLoginParams = {
     secretKey?: string
 }
 
-type OptionalUserInfoParams = {
-    /**
-     * The unique ID of the user.
-     */
-    userId?: number,
-    /**
-     * The name of the user.
-     */
-    username?: string
-}
-
 type OptionalUserTopTenParams = {
-    /**
-     * The unique ID of the user.
-     */
-    userId?: number,
-    /**
-     * The name of the user.
-     */
-    username?: string,
     /**
      * The category of the content. `anime` or `manga`.
      */
@@ -51,14 +40,6 @@ type OptionalUserTopTenParams = {
 }
 
 type OptionalUserListParams = {
-    /**
-     * The unique ID of the user.
-     */
-    userId?: number,
-    /**
-     * The name of the user.
-     */
-    username?: string,
     /**
      * The category of the content. `anime` or `manga`.
      */
@@ -96,14 +77,6 @@ type OptionalUserListParams = {
 
 type OptionalUserLatestCommentsParams = {
     /**
-     * The unique ID of the user.
-     */
-    userId?: number,
-    /**
-     * The name of the user.
-     */
-    username?: string,
-    /**
      * The category of the content. `anime` or `manga`.
      */
     category?: ContentCategory,
@@ -128,18 +101,10 @@ type OptionalUserLatestCommentsParams = {
      * Filters the comments by the type of data they in include.
      * Comments can have a rating, a comment text or both.
      */
-    showCommentsWith: CommentDetail
+    showCommentsWith?: CommentDetail
 }
 
 type OptionalUserHistoryParams = {
-    /**
-     * The unique ID of the user.
-     */
-    userId?: number,
-    /**
-     * The name of the user.
-     */
-    username?: string,
     /**
      * Results are returned in pages.
      * With this index, the page number can be defined.
@@ -204,35 +169,29 @@ export default class UserAPI extends BaseAPI {
     }
 
     /**
-     * Get info about the user specified by ID or name. If neither is specified, 
-     * the info of the currently logged in user is retrieved. When both are specified, only the ID is used.
+     * Get info about the specified user.
+     * If the identifier is not set, the currently logged in user is used.
      * @example
      * const proxerAPI = new ProxerAPI()
-     * // Getting info via userId
-     * const user = await proxerAPI.user.info({
-     *     userId: 815930
-     * })
+     * // Getting info via id
+     * const user = await proxerAPI.user.info(815930)
      * 
      * // Getting info via username
-     * const user = await proxerAPI.user.info({
-     *     username: 'Bakuenjin96'
-     * })
+     * const user = await proxerAPI.user.info('Bakuenjin96')
      * 
      * // Getting info of logged in user
      * const user = await proxerAPI.user.info()
-     * 
-     * // Specifying both params
-     * const user = await proxerAPI.user.info({
-     *     userId: 815930,
-     *     username: 'Bakuenjin96' // gets ignored
-     * })
+     * @param user The ID, username or class instance of any type of user.
      */
-    async info(optionalParams: OptionalUserInfoParams = {}) {
-        const payload: Payload = {
-            uid:        optionalParams.userId,
-            username:   optionalParams.username
+    async info(user?: UserResolvable) {
+        const payload: Payload = {}
+        if (typeof user !== 'undefined') {
+            const identifier = resolveUser(user)
+            if (typeof identifier === 'number')
+                payload.uid = identifier
+            else payload.username = identifier
         }
-        
+
         const url = [this._data.apiClass, UserApiFunction.UserInfo]
         const data = await this._data.httpClient.post(url, payload)
         return new User(data)
@@ -240,27 +199,27 @@ export default class UserAPI extends BaseAPI {
 
     /**
      * Loads the top ten list of the specified user.
-     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Getting list via id
-     * const topTenList = await proxerAPI.user.topTen({
-     *     userId: 815930
-     * })
+     * const topTenList = await proxerAPI.user.topTen(815930)
      * // Apply filters
-     * const topTenList = await proxerAPI.user.topTen({
-     *     userId: 815930,
+     * const topTenList = await proxerAPI.user.topTen(815930, {
      *     category: ContentCategory.Anime,
      *     includeHentai: true // ( ͡° ͜ʖ ͡°)
      * })
+     * @param user The ID, username or class instance of any type of user.
      */
-    async topTen(optionalParams: OptionalUserTopTenParams = {}) {
+    async topTen(user: UserResolvable, optionalParams: OptionalUserTopTenParams = {}) {
         const payload: Payload = {
-            uid:        optionalParams.userId,
-            username:   optionalParams.username,
-            kat:        optionalParams.category,
-            isH:        optionalParams.includeHentai
+            kat: optionalParams.category,
+            isH: optionalParams.includeHentai
         }
+
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
 
         const url = [this._data.apiClass, UserApiFunction.TopTen]
         const data: any[] = await this._data.httpClient.get(url, payload)
@@ -269,25 +228,20 @@ export default class UserAPI extends BaseAPI {
 
     /**
      * Loads a filtered entrylist of the specified user.
-     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Using default parameter values
-     * const list = await proxerAPI.user.list({
-     *     userId: 815930
-     * })
+     * const list = await proxerAPI.user.list(815930)
      * 
      * // Applying some filters
-     * const list = await proxerAPI.user.list({
-     *     userId: 815930,
+     * const list = await proxerAPI.user.list(815930, {
      *     category: ContentCategory.Anime,
      *     searchText: 'Made in Abyss'
      * })
+     * @param user The ID, username or class instance of any type of user.
      */
-    async list(optionalParams: OptionalUserListParams) {
+    async list(user: UserResolvable, optionalParams: OptionalUserListParams = {}) {
         const payload: Payload = {
-            uid:            optionalParams.userId,
-            username:       optionalParams.username,
             kat:            optionalParams.category,
             p:              optionalParams.pageIndex,
             limit:          optionalParams.resultsPerPage,
@@ -298,6 +252,11 @@ export default class UserAPI extends BaseAPI {
             filter:         optionalParams.filter
         }
         
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
+
         const url = [this._data.apiClass, UserApiFunction.List]
         const data: any[] = await this._data.httpClient.get(url, payload)
         return data.map(it => new UserListEntry(it))
@@ -305,36 +264,36 @@ export default class UserAPI extends BaseAPI {
 
     /**
      * Loads the latest comments of a user.
-     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Using default parameters
-     * const comments = await proxerAPI.user.latestComments({
-     *     userId: 815930
-     * })
+     * const comments = await proxerAPI.user.latestComments(815930)
      * 
      * // Applying some filters
-     * const comments = await proxerAPI.user.latestComments({
-     *     userId: 815930,
+     * const comments = await proxerAPI.user.latestComments(815930, {
      *     pageIndex: 2,
      *     resultsPerPage: 42,
      *     minCommentLength: 1337
      * })
+     * @param user The ID, username or class instance of any type of user.
      */
-    async latestComments(optionalParams: OptionalUserLatestCommentsParams) {
+    async latestComments(user: UserResolvable, optionalParams: OptionalUserLatestCommentsParams = {}) {
         const payload: Payload = {
-            uid:        optionalParams.userId,
-            username:   optionalParams.username,
-            kat:        optionalParams.category,
-            p:          optionalParams.pageIndex,
-            limit:      optionalParams.resultsPerPage,
-            length:     optionalParams.minCommentLength,
-            has:        optionalParams.showCommentsWith
+            kat:    optionalParams.category,
+            p:      optionalParams.pageIndex,
+            limit:  optionalParams.resultsPerPage,
+            length: optionalParams.minCommentLength,
+            has:    optionalParams.showCommentsWith
         }
 
         if (optionalParams.contentState)
             payload.state = optionalParams.contentState.join('+')
         
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
+
         const url = [this._data.apiClass, UserApiFunction.LatestComments]
         const data: any[] = await this._data.httpClient.get(url, payload)
         return data.map(it => new Comment(it))
@@ -342,31 +301,129 @@ export default class UserAPI extends BaseAPI {
 
     /**
      * Loads the history of a user.
-     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Using default parameters
-     * const history = await proxerAPI.user.history({
-     *     userId: 815930
-     * })
+     * const history = await proxerAPI.user.history(815930)
      * 
      * // Applying some additional parameters
-     * const history = await proxerAPI.user.history({
-     *     userId: 815930,
+     * const history = await proxerAPI.user.history(815930, {
      *     pageIndex: 2,
      *     resultsPerPage: 50
      * })
+     * @param user The ID, username or class instance of any type of user.
      */
-    async history(optionalParams: OptionalUserHistoryParams) {
+    async history(user: UserResolvable, optionalParams: OptionalUserHistoryParams = {}) {
         const payload: Payload = {
-            uid:        optionalParams.userId,
-            username:   optionalParams.username,
-            p:          optionalParams.pageIndex,
-            limit:      optionalParams.resultsPerPage
+            p:      optionalParams.pageIndex,
+            limit:  optionalParams.resultsPerPage
         }
+
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
 
         const url = [this._data.apiClass, UserApiFunction.History]
         const data: any[] = await this._data.httpClient.get(url, payload)
         return data.map(it => new HistoryEntry(it))
+    }
+
+    /**
+     * Loads 'about' information of the specified user.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Using id
+     * const about = await proxerAPI.user.about(815930)
+     * // Using username
+     * const about = await proxerAPI.user.about('Bakuenjin96')
+     * @param user The ID, username or class instance of any type of user.
+     */
+    async about(user: UserResolvable) {
+        const payload: Payload = {}
+
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
+
+        const url = [this._data.apiClass, UserApiFunction.About]
+        const data = await this._data.httpClient.get(url, payload)
+        return new UserAbout(data)
+    }
+
+    /**
+     * Loads the users friendlist.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Using id
+     * const about = await proxerAPI.user.friends(815930)
+     * // Using username
+     * const about = await proxerAPI.user.friends('Bakuenjin96')
+     * @param user The ID, username or class instance of any type of user.
+     */
+    async friends(user: UserResolvable) {
+        const payload: Payload = {}
+
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
+
+        const url = [this._data.apiClass, UserApiFunction.Friends]
+        const data: any[] = await this._data.httpClient.get(url, payload)
+        return data.map(it => new Friend(it))
+    }
+
+    /**
+     * Requests an authorization for the specified user via link.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * const authUrl = await proxerAPI.user.requestAuth(
+     *     815930, // The id of the user
+     *     'RANDOM_100_CHARS_LONG_CODE',
+     *     'YOUR_APP_NAME'
+     * )
+     * @param user The ID, username or class instance of any type of user.
+     * @param code A random 100 char long string. Needs to be unique per user.
+     * @param appName The name of the app. Should be clearly.
+     */
+    async requestAuth(user: UserResolvable, code: string, appName: string) {
+        const payload: Payload = {
+            code: code,
+            name: appName
+        }
+
+        const identifier = resolveUser(user)
+        if (typeof identifier === 'number')
+            payload.uid = identifier
+        else payload.username = identifier
+        
+        const url = [this._data.apiClass, UserApiFunction.RequestAuth]
+        await this._data.httpClient.post(url, payload)
+        return `proxer.me/auth?code=${code}&name=${appName}`
+    }
+
+    /**
+     * Checks if the authorization was successful.
+     * Throws an error when unsuccessful.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * const user = await proxerAPI.user.checkAuth(
+     *     'SAME_RANDOM_100_CHARS_LONG_CODE_AS_USED_FOR_REQUEST',
+     *     'YOUR_APP_NAME'
+     * )
+     * @param code A random 100 char long string. Needs to be the same as the one used for `requestAuth()`
+     * @param appName The name of the app. Should be clearly.
+     */
+    async checkAuth(code: string, appName: string) {
+        const payload: Payload = {
+            code: code,
+            name: appName
+        }
+
+        const url = [this._data.apiClass, UserApiFunction.CheckAuth]
+        const data = await this._data.httpClient.post(url, payload)
+        return new LoggedInUser(data)
     }
 }
