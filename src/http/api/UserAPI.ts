@@ -3,10 +3,19 @@ import HttpClient from "../models/HttpClient";
 import ProxerApiClass from "./enums/ProxerApiClass";
 import UserApiFunction from "./enums/UserApiFunction";
 import LoggedInUser from "../../models/LoggedInUser";
-import { Payload } from "./definitions/Payload";
 import User from "../../models/User";
-import ContentCategory from "../../models/enums/ContentCategory";
-import TopTenElement from "../../models/TopTenElement";
+import TopTenEntry from "../../models/TopTenEntry";
+import UserListEntry from "../../models/UserListEntry";
+import Comment from "../../models/Comment";
+import HistoryEntry from "../../models/HistoryEntry";
+import { Payload } from "./definitions/Payload";
+import { 
+    OptionalUserLoginParams, 
+    OptionalUserInfoParams, OptionalUserTopTenParams, 
+    OptionalUserListParams, 
+    OptionalUserLatestCommentsParams,
+    OptionalUserHistoryParams
+} from "./definitions/UserParams";
 
 export default class UserAPI extends BaseAPI {
 
@@ -33,15 +42,15 @@ export default class UserAPI extends BaseAPI {
      *    { secretKey: 'YOUR_2FA_KEY' }
      * )
      */
-    async login(username: string, password: string, optionalParams: { secretKey?: string } = {}) {
+    async login(username: string, password: string, optionalParams: OptionalUserLoginParams = {}) {
         const payload: Payload = {
-            username,
-            password
+            username: username,
+            password: password,
+            secretkey: optionalParams.secretKey
         }
-        if (optionalParams.secretKey)
-            payload.secretkey = optionalParams.secretKey
         
-        const data = await this._data.httpClient.post([this._data.apiClass, UserApiFunction.Login], payload)
+        const url = [this._data.apiClass, UserApiFunction.Login]
+        const data = await this._data.httpClient.post(url, payload)
         return new LoggedInUser(data)
     }
 
@@ -56,7 +65,8 @@ export default class UserAPI extends BaseAPI {
      * proxerAPI.deleteUserToken()
      */
     async logout() {
-        await this._data.httpClient.post([this._data.apiClass, UserApiFunction.Logout])
+        const url = [this._data.apiClass, UserApiFunction.Logout]
+        await this._data.httpClient.post(url)
     }
 
     /**
@@ -65,32 +75,32 @@ export default class UserAPI extends BaseAPI {
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Getting info via userId
-     * const user = await proxerAPI.user.userInfo({
+     * const user = await proxerAPI.user.info({
      *     userId: 815930
      * })
      * 
      * // Getting info via username
-     * const user = await proxerAPI.user.userInfo({
+     * const user = await proxerAPI.user.info({
      *     username: 'Bakuenjin96'
      * })
      * 
      * // Getting info of logged in user
-     * const user = await proxerAPI.user.userInfo()
+     * const user = await proxerAPI.user.info()
      * 
      * // Specifying both params
-     * const user = await proxerAPI.user.userInfo({
+     * const user = await proxerAPI.user.info({
      *     userId: 815930,
      *     username: 'Bakuenjin96' // gets ignored
      * })
      */
-    async userInfo(optionalParams: { userId?: number, username?: string } = {}) {
-        const payload: Payload = {}
-        if (optionalParams.userId)
-            payload.uid = optionalParams.userId
-        if (optionalParams.username)
-            payload.username = optionalParams.username
+    async info(optionalParams: OptionalUserInfoParams = {}) {
+        const payload: Payload = {
+            uid:        optionalParams.userId,
+            username:   optionalParams.username
+        }
         
-        const data = await this._data.httpClient.post([this._data.apiClass, UserApiFunction.UserInfo], payload)
+        const url = [this._data.apiClass, UserApiFunction.UserInfo]
+        const data = await this._data.httpClient.post(url, payload)
         return new User(data)
     }
 
@@ -109,18 +119,100 @@ export default class UserAPI extends BaseAPI {
      *     includeHentai: true // ( ͡° ͜ʖ ͡°)
      * })
      */
-    async topTen(optionalParams: { userId?: number, username?: string, category?: ContentCategory, includeHentai?: boolean } = {}) {
-        const payload: Payload = {}
-        if (optionalParams.userId)
-            payload.uid = optionalParams.userId
-        if (optionalParams.username)
-            payload.username = optionalParams.username
-        if (optionalParams.category)
-            payload.kat = optionalParams.category
-        if (optionalParams.includeHentai)
-            payload.isH = optionalParams.includeHentai
+    async topTen(optionalParams: OptionalUserTopTenParams = {}) {
+        const payload: Payload = {
+            uid:        optionalParams.userId,
+            username:   optionalParams.username,
+            kat:        optionalParams.category,
+            isH:        optionalParams.includeHentai
+        }
 
-        const data: any[] = await this._data.httpClient.get([this._data.apiClass, UserApiFunction.TopTen], payload)
-        return data.map((element: any) => new TopTenElement(element))
+        const url = [this._data.apiClass, UserApiFunction.TopTen]
+        const data: any[] = await this._data.httpClient.get(url, payload)
+        return data.map(it => new TopTenEntry(it))
+    }
+
+    /**
+     * Get a filtered list of a users entries.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Using default parameter values
+     * const list = await proxerAPI.user.list({
+     *     userId: 815930
+     * })
+     * 
+     * // Applying some filters
+     * const list = await proxerAPI.user.list({
+     *     userId: 815930,
+     *     category: ContentCategory.Anime,
+     *     searchText: 'Made in Abyss'
+     * })
+     */
+    async list(optionalParams: OptionalUserListParams) {
+        const payload: Payload = {
+            uid:            optionalParams.userId,
+            username:       optionalParams.username,
+            kat:            optionalParams.category,
+            p:              optionalParams.pageIndex,
+            limit:          optionalParams.resultsPerPage,
+            search:         optionalParams.searchText,
+            search_start:   optionalParams.searchStartText,
+            isH:            optionalParams.includeHentai,
+            sort:           optionalParams.sortType,
+            filter:         optionalParams.filter
+        }
+        
+        const url = [this._data.apiClass, UserApiFunction.List]
+        const data: any[] = await this._data.httpClient.get(url, payload)
+        return data.map(it => new UserListEntry(it))
+    }
+
+    /**
+     * Gets the latest comments of a user.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Using default parameters
+     * const comments = await proxerAPI.user.latestComments({
+     *     userId: 815930
+     * })
+     * 
+     * // Applying some filters
+     * const comments = await proxerAPI.user.latestComments({
+     *     userId: 815930,
+     *     pageIndex: 2,
+     *     resultsPerPage: 42,
+     *     minCommentLength: 1337
+     * })
+     */
+    async latestComments(optionalParams: OptionalUserLatestCommentsParams) {
+        const payload: Payload = {
+            uid:        optionalParams.userId,
+            username:   optionalParams.username,
+            kat:        optionalParams.category,
+            p:          optionalParams.pageIndex,
+            limit:      optionalParams.resultsPerPage,
+            length:     optionalParams.minCommentLength,
+            has:        optionalParams.showCommentsWith
+        }
+
+        if (optionalParams.contentState)
+            payload.state = optionalParams.contentState.join('+')
+        
+        const url = [this._data.apiClass, UserApiFunction.LatestComments]
+        const data: any[] = await this._data.httpClient.get(url, payload)
+        return data.map(it => new Comment(it))
+    }
+
+    async history(optionalParams: OptionalUserHistoryParams) {
+        const payload: Payload = {
+            uid:        optionalParams.userId,
+            username:   optionalParams.username,
+            p:          optionalParams.pageIndex,
+            limit:      optionalParams.resultsPerPage
+        }
+
+        const url = [this._data.apiClass, UserApiFunction.History]
+        const data: any[] = await this._data.httpClient.get(url, payload)
+        return data.map(it => new HistoryEntry(it))
     }
 }
