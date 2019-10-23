@@ -7,6 +7,7 @@
     "test": "jest",
     "coverage": "jest --coverage",
     "start": "tsc && node .",
+    "build": "tsc",
     "debug": "tsc && node ./tests/debug/index.js"
   },
   "keywords": [
