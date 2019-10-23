@@ -16,4 +16,14 @@ describe('convertJsonToQuery function', () => {
         const emptyString = convertJsonToQuery(obj)
         expect(emptyString).toBe('')
     })
+
+    it('should filter undefined elements', () => {
+        const obj: { [key: string]: any } = {
+            hello: 'world',
+            x: undefined,
+            num: 5
+        }
+        const queryString = convertJsonToQuery(obj)
+        expect(queryString).toBe('hello=world&num=5')
+    })
 })

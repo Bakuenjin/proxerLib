@@ -19,7 +19,7 @@ describe('ProxerAPI class', () => {
         proxerApi.setUserToken('token')
         if (proxerApi.httpClient instanceof ProxerHttpClient)
             expect(proxerApi.httpClient.config.userToken).toBe('token')
-        else fail()
+        else fail('proxerApi.httpClient is not of instanceof ProxerHttpCLient')
     })
 
     it('can delete user token', () => {
@@ -30,6 +30,6 @@ describe('ProxerAPI class', () => {
             proxerApi.deleteUserToken()
             expect(proxerApi.httpClient.config.userToken).toBeUndefined()
         }
-        else fail()
+        else fail('proxerApi.httpClient is not of instanceof ProxerHttpCLient')
     })
 })

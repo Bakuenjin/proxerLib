@@ -1,4 +1,4 @@
-import HttpClient from "../../src/http/models/HttpClient";
+import HttpClient from '../../src/http/models/HttpClient'
 
 export default class CustomHttpClient implements HttpClient {
 
