@@ -193,7 +193,7 @@ export default class UserAPI extends BaseAPI {
         }
 
         const url = [this._data.apiClass, UserApiFunction.UserInfo]
-        const data = await this._data.httpClient.post(url, payload)
+        const data = await this._data.httpClient.get(url, payload)
         return new User(data)
     }
 
