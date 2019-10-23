@@ -1,2 +1,4 @@
 import ProxerAPI from "./http/ProxerAPI";
-export { ProxerAPI }
+import HttpClient from './http/models/HttpClient'
+
+export { ProxerAPI, HttpClient }
