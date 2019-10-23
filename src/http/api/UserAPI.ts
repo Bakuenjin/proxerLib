@@ -105,7 +105,8 @@ export default class UserAPI extends BaseAPI {
     }
 
     /**
-     * Get the top ten list of the specified user.
+     * Loads the top ten list of the specified user.
+     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Getting list via id
@@ -133,7 +134,8 @@ export default class UserAPI extends BaseAPI {
     }
 
     /**
-     * Get a filtered list of a users entries.
+     * Loads a filtered entrylist of the specified user.
+     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Using default parameter values
@@ -168,7 +170,8 @@ export default class UserAPI extends BaseAPI {
     }
 
     /**
-     * Gets the latest comments of a user.
+     * Loads the latest comments of a user.
+     * Either `userId` or `username` needs to be defined.
      * @example
      * const proxerAPI = new ProxerAPI()
      * // Using default parameters
@@ -203,6 +206,23 @@ export default class UserAPI extends BaseAPI {
         return data.map(it => new Comment(it))
     }
 
+    /**
+     * Loads the history of a user.
+     * Either `userId` or `username` needs to be defined.
+     * @example
+     * const proxerAPI = new ProxerAPI()
+     * // Using default parameters
+     * const history = await proxerAPI.user.history({
+     *     userId: 815930
+     * })
+     * 
+     * // Applying some additional parameters
+     * const history = await proxerAPI.user.history({
+     *     userId: 815930,
+     *     pageIndex: 2,
+     *     resultsPerPage: 50
+     * })
+     */
     async history(optionalParams: OptionalUserHistoryParams) {
         const payload: Payload = {
             uid:        optionalParams.userId,
