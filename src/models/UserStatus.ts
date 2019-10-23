@@ -11,7 +11,7 @@ export default class UserStatus {
     constructor(text: string, timestamp?: number) {
         this._data = {
             text: text,
-            timestamp: timestamp ? new Date(timestamp) : null
+            timestamp: timestamp ? new Date(timestamp * 1000) : null
         }
     }
 
