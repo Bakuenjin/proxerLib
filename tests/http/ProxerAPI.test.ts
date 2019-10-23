@@ -1,5 +1,6 @@
 import ProxerAPI from '../../src/http/ProxerAPI'
 import ProxerHttpClient from '../../src/http/models/ProxerHttpClient'
+import CustomHttpClient from '../mocks/CustomHttpClient'
 
 describe('ProxerAPI class', () => {
     it('can be created with ProxerHttpClient', () => {
@@ -8,7 +9,9 @@ describe('ProxerAPI class', () => {
     })
 
     it('can be created with custom HttpClient', () => {
-        
+        const customHttpClient = new CustomHttpClient()
+        const proxerApi = new ProxerAPI({customHttpClient: customHttpClient})
+        expect(proxerApi.httpClient).toBeInstanceOf(CustomHttpClient)
     })
 
     it('can set user token', () => {
