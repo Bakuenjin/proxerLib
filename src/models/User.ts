@@ -24,7 +24,7 @@ export default class User {
             name: data.username,
             avatar: new Avatar(data.avatar),
             status: new UserStatus(data.status, data.status_time ? data.status_time : undefined),
-            points: new UserPoints(data.points_upload, data.points_anime, data.points_manga, data.points_info, data.points_forum, data.points_misc),
+            points: new UserPoints(data.points_uploads, data.points_anime, data.points_manga, data.points_info, data.points_forum, data.points_misc),
             isTeam: data.isTeam,
             isDonator: data.isDonator
         }
