@@ -2,10 +2,7 @@ import sendRequest from '../../../src/http/utils/send-request'
 import createRequest from '../../../src/http/utils/create-request'
 import RequestMethodType from '../../../src/http/models/RequestMethodType'
 import HttpClientConfiguration from '../../../src/http/models/HttpClientConfiguration'
-import { startMockserver } from '../../mocks/server'
 import { FatalError } from '../../../src/http/errors/ProxerErrors'
-
-startMockserver(3000)
 
 describe('send request function', () => {
     it('sends GET http request', async () => {

@@ -1,6 +1,11 @@
 import ProxerAPI from '../../src/http/ProxerAPI'
 import ProxerHttpClient from '../../src/http/models/ProxerHttpClient'
 import CustomHttpClient from '../mocks/CustomHttpClient'
+import { startMockserver } from '../mocks/server'
+
+beforeAll(() => {
+    startMockserver(3000)
+})
 
 describe('ProxerAPI class', () => {
     it('can be created with ProxerHttpClient', () => {
