@@ -8,3 +8,5 @@ enum UserRelationshipStatus {
     NotSearching    = 'not-searching',
     None            = ''
 }
+
+export default UserRelationshipStatus

@@ -1,3 +1,6 @@
+import ContentCategory from "./enums/ContentCategory"
+import ContentMedium from "./enums/ContentMedium"
+
 /**
  * Represents content information of a comment.
  */
@@ -5,13 +8,16 @@ export default class CommentContentInfo {
 
     private _data: {
         id: number,
+        name: string
         progress: number,
-        rating: number   
+        rating: number,
+        category: ContentCategory,
+        medium: ContentMedium
     }
 
-    constructor(id: number, progress: number, rating: number) {
+    constructor(id: number, name: string, progress: number, rating: number, category: ContentCategory, medium: ContentMedium) {
         this._data = {
-            id, progress, rating
+            id, name, progress, rating, category, medium
         }
     }
 
@@ -20,6 +26,13 @@ export default class CommentContentInfo {
      */
     get id(): number {
         return this._data.id
+    }
+
+    /**
+     * The name of this content.
+     */
+    get name(): string {
+        return this._data.name
     }
 
     /**
@@ -34,6 +47,20 @@ export default class CommentContentInfo {
      */
     get rating(): number {
         return this._data.rating
+    }
+
+    /**
+     * The category of this content.
+     */
+    get category(): ContentCategory {
+        return this._data.category
+    }
+
+    /**
+     * The medium of this content.
+     */
+    get medium(): ContentMedium {
+        return this._data.medium
     }
 
 }

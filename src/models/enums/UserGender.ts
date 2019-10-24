@@ -4,3 +4,4 @@ enum UserGender {
     Other   = 'o',
     None    = ''
 }
+export default UserGender

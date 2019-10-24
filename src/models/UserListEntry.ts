@@ -12,6 +12,7 @@ export default class UserListEntry {
         episodeCount: number,
         medium: ContentMedium,
         entryState: string,
+        rating: number,
         comment: UserListEntryComment
     }
 
@@ -22,6 +23,7 @@ export default class UserListEntry {
             episodeCount: data.count,
             medium: data.medium,
             entryState: data.estate,
+            rating: data.rating,
             comment: new UserListEntryComment(data.cid, data.comment, data.state, data.episode, data.data, data.timestamp)
         }
     }
@@ -59,6 +61,13 @@ export default class UserListEntry {
      */
     get entryState(): string {
         return this._data.entryState
+    }
+
+    /**
+     * The rating the user placed.
+     */
+    get rating(): number {
+        return this._data.rating
     }
 
     /**

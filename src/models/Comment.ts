@@ -13,7 +13,7 @@ export default class Comment {
         content: CommentContentInfo,
         text: string,
         type: string,   // TODO
-        state: string,
+        state: number,
         details: string,
         rating: number,
         timestamp: Date
@@ -23,7 +23,13 @@ export default class Comment {
         this._data = {
             id: data.id,
             user: new CommentUserInfo(data.uid, data.username, data.avatar),
-            content: new CommentContentInfo(data.tid, data.episode, data.rating),
+            content: new CommentContentInfo(
+                data.tid, 
+                data.name, 
+                data.episode, 
+                data.rating,
+                data.kat,
+                data.medium),
             text: data.comment,
             type: data.type,
             state: data.state,
@@ -71,7 +77,7 @@ export default class Comment {
     /**
      * This comments current state.
      */
-    get state(): string {
+    get state(): number {
         return this._data.state
     }
 

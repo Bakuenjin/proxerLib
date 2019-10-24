@@ -1,3 +1,6 @@
+import UserGender from "./enums/UserGender"
+import UserRelationshipStatus from "./enums/UserRelationshipStatus"
+
 /**
  * Represents the about section of a user.
  */
@@ -40,7 +43,7 @@ export default class UserAbout {
             deviantArt: data.info_deviantart,
             birthday: isNaN(parsedDate) ? undefined : new Date(parsedDate),
             gender: data.info_gender,
-            relationshipStatus: data.data.info_relationshipstatus
+            relationshipStatus: data.info_relationshipstatus
         }
     }
 
