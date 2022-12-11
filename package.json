@@ -23,7 +23,7 @@
     "@types/jest": "^24.0.19",
     "@types/node": "^12.11.1",
     "@types/node-fetch": "^2.5.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "typescript": "^3.6.4"
